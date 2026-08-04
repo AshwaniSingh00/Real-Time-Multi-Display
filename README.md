@@ -61,8 +61,10 @@ video-sync-system/
 
 ---
 ## Live Demo :-
-Controller:-https://real-time-multi-display.vercel.app
-Displays:-https://real-time-multi-display.vercel.app/display
+### Controller :-
+https://real-time-multi-display.vercel.app
+### Display :-
+https://real-time-multi-display.vercel.app/display
 
 ---
 ## 🚀 Installation
