@@ -60,7 +60,11 @@ video-sync-system/
 ```
 
 ---
+## Live Demo :-
+Controller:-https://real-time-multi-display.vercel.app
+Displays:-https://real-time-multi-display.vercel.app/display
 
+---
 ## 🚀 Installation
 
 ### Clone the repository
@@ -107,6 +111,7 @@ npm run dev
 ```
 
 ---
+
 
 ## 🌐 Environment Variables
 
