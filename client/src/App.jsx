@@ -1,12 +1,25 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Controller from "./pages/Controller";
 import Display from "./pages/Display";
+import Login from "./pages/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/controller" replace />} />
-      <Route path="/controller" element={<Controller />} />
+      <Route path="/" element={<Navigate to="/login" replace />} />
+
+      <Route path="/login" element={<Login />} />
+
+      <Route
+        path="/controller"
+        element={
+          <ProtectedRoute>
+            <Controller />
+          </ProtectedRoute>
+        }
+      />
+
       <Route path="/display" element={<Display />} />
     </Routes>
   );

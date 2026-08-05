@@ -1,128 +1,158 @@
 import { displays } from "../state/clients.js";
-import { playbackState, THRESHOLD,getExpectedTime } from "../state/playbackState.js";
-export default function handleSocketConnection(io) {
-io.on("connection", (socket) => {
-  console.log(`Client connected: ${socket.id}`);
+import {
+  playbackState,
+  THRESHOLD,
+  getExpectedTime,
+} from "../state/playbackState.js";
 
-  socket.on("register", ({ role }) => {
-  if (role === "display") {
-    displays.set(socket.id, {
-      socketId: socket.id,
+export default function handleSocketConnection(io) {
+  io.on("connection", (socket) => {
+    console.log(`Client connected: ${socket.id}`);
+
+    const role = socket.user?.role;
+
+    socket.on("register", () => {
+      if (role === "display") {
+        displays.set(socket.id, {
+          socketId: socket.id,
+        });
+
+        io.emit("display-count", displays.size);
+      }
+
+      if (role === "controller") {
+        socket.emit("display-count", displays.size);
+      }
+
+      console.log(`${role} registered (${socket.id})`);
     });
 
-    io.emit("display-count", displays.size);
-  }
+    socket.on("disconnect", () => {
+      displays.delete(socket.id);
 
-  if (role === "controller") {
-    socket.emit("display-count", displays.size);
-  }
+      io.emit("display-count", displays.size);
 
-  console.log(`${role} registered (${socket.id})`);
-});
+      console.log(`Client disconnected: ${socket.id}`);
+    });
 
-  socket.on("disconnect", () => {
-    displays.delete(socket.id);
+    socket.on("play", () => {
+      if (role !== "controller") return;
 
-    io.emit("display-count", displays.size);
+      console.log("Play requested");
 
-    console.log(`Client disconnected: ${socket.id}`);
-  });
+      playbackState.isPlaying = true;
+      playbackState.updatedAt = Date.now();
 
-  socket.on("play", () => {
-    console.log("Play requested");
+      io.emit("play");
+    });
 
-    playbackState.isPlaying = true;
-    playbackState.updatedAt = Date.now();
+    socket.on("pause", () => {
+      if (role !== "controller") return;
 
-    io.emit("play");
-  });
+      console.log("Pause requested");
 
-  socket.on("pause", () => {
-    console.log("Pause requested");
+      if (playbackState.isPlaying) {
+        playbackState.currentTime +=
+          (Date.now() - playbackState.updatedAt) / 1000;
+      }
 
-    if (playbackState.isPlaying) {
-      playbackState.currentTime +=
-        (Date.now() - playbackState.updatedAt) / 1000;
-    }
+      playbackState.isPlaying = false;
+      playbackState.updatedAt = Date.now();
 
-    playbackState.isPlaying = false;
-    playbackState.updatedAt = Date.now();
+      io.emit("pause");
+    });
 
-    io.emit("pause");
-  });
+    socket.on("restart", () => {
+      if (role !== "controller") return;
 
-  socket.on("restart", () => {
-    console.log("Restart requested");
+      console.log("Restart requested");
 
-    playbackState.currentTime = 0;
-    playbackState.updatedAt = Date.now();
+      playbackState.currentTime = 0;
+      playbackState.updatedAt = Date.now();
 
-    io.emit("restart");
-  });
+      io.emit("restart");
+    });
 
-  socket.on("seek", ({ currentTime }) => {
-    console.log(`Seek requested to ${currentTime}`);
+    socket.on("seek", ({ currentTime }) => {
+      if (role !== "controller") return;
 
-    playbackState.currentTime = currentTime;
-    playbackState.updatedAt = Date.now();
+      console.log(`Seek requested to ${currentTime}`);
 
-    io.emit("seek", { currentTime });
-  });
+      playbackState.currentTime = currentTime;
+      playbackState.updatedAt = Date.now();
+
+      io.emit("seek", { currentTime });
+    });
+
     socket.on("forward", () => {
-  playbackState.currentTime = getExpectedTime() + 5;
-  playbackState.updatedAt = Date.now();
+      if (role !== "controller") return;
 
-  io.emit("seek", {
-    currentTime: playbackState.currentTime,
-  });
+      playbackState.currentTime = getExpectedTime() + 5;
+      playbackState.updatedAt = Date.now();
 
-  console.log("Forward 5 seconds");
-});
-
-socket.on("backward", () => {
-    console.log("Backward requested");
-  playbackState.currentTime = Math.max(getExpectedTime() - 5, 0);
-  playbackState.updatedAt = Date.now();
-
-  io.emit("seek", {
-    currentTime: playbackState.currentTime,
-    
-  });
-});
-
-  socket.on("playback-status", ({ currentTime }) => {
-    const expectedTime = getExpectedTime();
-
-    const drift = Math.abs(expectedTime - currentTime);
-
-    console.log(
-      `Display ${socket.id} | Expected: ${expectedTime.toFixed(
-        2
-      )}s | Actual: ${currentTime.toFixed(2)}s | Drift: ${drift.toFixed(2)}s`
-    );
-
-    if (drift > THRESHOLD) {
-      console.log(`Syncing display ${socket.id}`);
-
-      socket.emit("sync", {
-        videoId: playbackState.videoId,
-        currentTime: expectedTime,
-        isPlaying: playbackState.isPlaying,
+      io.emit("seek", {
+        currentTime: playbackState.currentTime,
       });
-    }
+
+      console.log("Forward 5 seconds");
+    });
+
+    socket.on("backward", () => {
+      if (role !== "controller") return;
+
+      console.log("Backward requested");
+
+      playbackState.currentTime = Math.max(
+        getExpectedTime() - 5,
+        0
+      );
+
+      playbackState.updatedAt = Date.now();
+
+      io.emit("seek", {
+        currentTime: playbackState.currentTime,
+      });
+    });
+
+    socket.on("playback-status", ({ currentTime }) => {
+      if (role !== "display") return;
+
+      const expectedTime = getExpectedTime();
+
+      const drift = Math.abs(expectedTime - currentTime);
+
+      console.log(
+        `Display ${socket.id} | Expected: ${expectedTime.toFixed(
+          2
+        )}s | Actual: ${currentTime.toFixed(
+          2
+        )}s | Drift: ${drift.toFixed(2)}s`
+      );
+
+      if (drift > THRESHOLD) {
+        console.log(`Syncing display ${socket.id}`);
+
+        socket.emit("sync", {
+          videoId: playbackState.videoId,
+          currentTime: expectedTime,
+          isPlaying: playbackState.isPlaying,
+        });
+      }
+    });
+
+    socket.on("change-video", ({ videoId }) => {
+      if (role !== "controller") return;
+
+      console.log(`Video changed to ${videoId}`);
+
+      playbackState.videoId = videoId;
+      playbackState.currentTime = 0;
+      playbackState.isPlaying = false;
+      playbackState.updatedAt = Date.now();
+
+      io.emit("change-video", {
+        videoId,
+      });
+    });
   });
-  socket.on("change-video", ({ videoId }) => {
-  console.log(`Video changed to ${videoId}`);
-
-  playbackState.videoId = videoId;
-  playbackState.currentTime = 0;
-  playbackState.isPlaying = false;
-  playbackState.updatedAt = Date.now();
-
-  io.emit("change-video", {
-    videoId,
-  });
-
-});
-});
 }
