@@ -1,63 +1,123 @@
 
-A real-time video synchronization system built with **React, Node.js, Express, and Socket.IO**. The application allows a controller to manage playback across multiple connected display clients, ensuring all displays stay synchronized.
+# SyncStream
+
+## Real-Time Multi-Display Video Synchronization System
+
+## 🎯 Aim
+
+The aim of SyncStream is to build a real-time video synchronization system where a central Controller can control video playback across multiple Displays simultaneously.
+
+The backend acts as the authoritative source of playback state and uses Socket.IO to communicate playback commands and synchronization updates in real time.
 
 ---
 
-## ✨ Features
+## 🌐 Deployed Links
 
-### 🎮 Controller
-- Play video
-- Pause video
-- Restart video
-- Forward 5 seconds
-- Backward 5 seconds
-- Change video for all displays
-- View connected display count
+### Controller
 
-### 📺 Display
-- Receives commands in real time
-- Automatically synchronizes playback
-- Supports video switching
-- Automatically syncs when a new display joins
-- Drift detection and correction
+[Open Controller](https://real-time-multi-display.vercel.app/login)
+
+### Display
+
+[Open Display](https://real-time-multi-display.vercel.app/display)
+
+## 🔑 Demo Login
+
+**Email:** `controller@gmail.com`
+
+**Password:** `controller123`
 
 ---
 
-## 🛠 Tech Stack
+## 🚀 Key Features
+
+- Controller Login using JWT authentication
+- Role-based authorization for Controller 
+- Secure password verification using bcrypt
+- Multiple Display connections
+- Real-time connected Display count
+- Play / Pause / Restart
+- Forward 5 seconds / Backward 5 seconds
+- Real-time video switching
+- Automatic playback synchronization
+- Playback drift detection and correction
+- Display activation for browser autoplay restrictions
+- Protected Controller route
+- Controller Logout
+- Real-time communication using Socket.IO
+
+---
+
+## 🛠️ Tech Stack
 
 ### Frontend
 - React
 - Vite
-- Socket.IO Client
 - Tailwind CSS
+- React Router
+- Socket.IO Client
 
 ### Backend
 - Node.js
 - Express.js
 - Socket.IO
+- JWT
+- bcrypt
+
+### Database
+- MongoDB
+- Mongoose
 
 ---
 
-## 📂 Project Structure
+## 📁 Project Structure
 
-```
-video-sync-system/
+```text
+SyncStream/
 │
 ├── client/
 │   ├── src/
-│   ├── public/
-│   │   └── videos/
+│   │   ├── components/
+│   │   │   └── ProtectedRoute.jsx
+│   │   │
+│   │   ├── pages/
+│   │   │   ├── Login.jsx
+│   │   │   ├── Controller.jsx
+│   │   │   └── Display.jsx
+│   │   │
+│   │   ├── services/
+│   │   │   ├── socket.js
+│   │   │   └── displaySocket.js
+│   │   │
+│   │   └── App.jsx
+│   │
 │   └── package.json
 │
 ├── server/
-│   ├── src/
-│   │   ├── sockets/
-│   │   ├── state/
-│   │   └── server.js
-│   └── package.json
+│   ├── config/
+│   │   └── db.js
+│   │
+│   ├── controllers/
+│   │   └── authController.js
+│   │
+│   ├── models/
+│   │   └── User.js
+│   │
+│   ├── routes/
+│   │   └── authRoutes.js
+│   │
+│   ├── sockets/
+│   │   └── socketHandler.js
+│   │
+│   ├── state/
+│   │   ├── clients.js
+│   │   └── playbackState.js
+│   │
+│   ├── app.js
+│   ├── server.js
+│   └── .env
 │
 └── README.md
-```
 
 ---
 
@@ -113,6 +173,9 @@ npm run dev
 ### Server (.env)
 
 ```env
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+DISPLAY_KEY=your_display_key
 PORT=3000
 CLIENT_URL=http://localhost:5173
 ```
@@ -125,17 +188,6 @@ VITE_SERVER_URL=http://localhost:3000
 
 ---
 
-## 🎯 How It Works
-
-1. Displays connect and register with the server.
-2. The controller sends playback commands.
-3. The server maintains the authoritative playback state.
-4. Commands are broadcast to all connected displays.
-5. Displays periodically report playback status.
-6. The server detects playback drift and synchronizes displays.
-7. Newly connected displays automatically receive the current playback state and join the session seamlessly.
-
----
 
 ## 📸 Screens
 
@@ -151,39 +203,14 @@ VITE_SERVER_URL=http://localhost:3000
 
 ---
 
-## 🔄 Socket Events
-
-### Client → Server
-
-- register
-- play
-- pause
-- restart
-- seek
-- forward
-- backward
-- playback-status
-- change-video
-
-### Server → Client
-
-- play
-- pause
-- restart
-- seek
-- sync
-- display-count
-- change-video
-
----
-
 ## 📌 Future Improvements
-
-- Video upload from controller
-- URL-based video streaming
-- Authentication
-- Room support
-- Volume control
+- Display pairing using temporary pairing codes
+- Individual Display identification
+- Display groups
+- Display-specific controls
+- Persistent Display configuration
+- Admin dashboard
+  
 
 
 ---
@@ -192,4 +219,4 @@ VITE_SERVER_URL=http://localhost:3000
 
 **Ashwani Singh**
 
-Built as a real-time synchronization assignment using Socket.IO.
+B.Tech – Computer Science
